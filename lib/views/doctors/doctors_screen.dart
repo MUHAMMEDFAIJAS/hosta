@@ -1,5 +1,115 @@
 import 'package:flutter/material.dart';
 
+class HostaHeader extends StatelessWidget {
+  const HostaHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.green[800],
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 50),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.green.shade700, // Slightly darker green button
+                  borderRadius: BorderRadius.circular(12), // Rounded corners
+                ),
+                child: IconButton(
+                  icon: Icon(Icons.chevron_left),
+                  color: Colors.white,
+                  onPressed: () {
+                    // Your action here
+                    print('Button Pressed');
+                  },
+                ),
+              ),
+              const Text(
+                'HOSPITAL TYPES',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green[600],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.menu, color: Colors.white, size: 20),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Search bar and Settings icon
+          Row(
+            children: [
+              // Search Bar
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.green[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.search, color: Colors.white),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          style: TextStyle(fontSize: 14, color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText:
+                                'Search for Hospitals, Ambulance, Doctors...',
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              // Settings Button
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green[600],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child:
+                    const Icon(Icons.settings, color: Colors.white, size: 20),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
 class DoctorsScreen extends StatelessWidget {
   const DoctorsScreen({super.key});
 
@@ -9,67 +119,8 @@ class DoctorsScreen extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       body: Column(
         children: [
-          // Header
-          Container(
-            padding:
-                const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
-            decoration: BoxDecoration(
-              color: Colors.green[700],
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-                    const Text(
-                      'Doctors',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Icon(Icons.menu, color: Colors.white, size: 28),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Search bar
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.search, color: Colors.grey),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Search for Doctors',
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
+          HostaHeader(),
           const SizedBox(height: 10),
-
-          // List of Doctors
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(10),
@@ -155,6 +206,7 @@ class DoctorTile extends StatelessWidget {
       ),
       children: availability.map((item) {
         return Container(
+          width: double.infinity,
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(

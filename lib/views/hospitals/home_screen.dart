@@ -1,9 +1,13 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:hosta/controller/hospital_controller.dart';
+import 'package:hosta/views/ambulance/ambulance_screen.dart';
+import 'package:hosta/views/blood%20donar/blood_donar.dart';
 import 'package:hosta/views/doctors/doctors_screen.dart';
-import 'package:hosta/views/hospitals/hospitals_screen.dart';
+import 'package:hosta/views/hospitals/hospital_category_screen.dart';
+import 'package:hosta/views/hospitals/hospital_types.dart';
+import 'package:hosta/views/specialities/speaciaalities_screen.dart';
 
-// First add the header
 class HostaHeader extends StatelessWidget {
   const HostaHeader({super.key});
 
@@ -18,60 +22,69 @@ class HostaHeader extends StatelessWidget {
           bottomRight: Radius.circular(20),
         ),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // App Name
-          const Text(
-            'HOSTA',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 10),
-
-          // Search Bar
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              height: 45,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.search, color: Colors.grey),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      style: TextStyle(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'Search for Hospitals, Ambulance, Doctors...',
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Two Buttons vertically stacked
-          Column(
+          SizedBox(height: 50),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const Text(
+                'HOSTA',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.all(8),
-                margin: const EdgeInsets.only(bottom: 8),
                 decoration: BoxDecoration(
                   color: Colors.green[600],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.menu, color: Colors.white, size: 20),
               ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Search bar and Settings icon
+          Row(
+            children: [
+              // Search Bar
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.green[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.search, color: Colors.white),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          style: TextStyle(fontSize: 14, color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText:
+                                'Search for Hospitals, Ambulance, Doctors...',
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              // Settings Button
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -83,6 +96,8 @@ class HostaHeader extends StatelessWidget {
               ),
             ],
           ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -97,12 +112,10 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          // <<<<<<<<<< Use new Header here
           const HostaHeader(),
 
           const SizedBox(height: 20),
 
-          // Carousel
           CarouselSlider(
             options: CarouselOptions(
               height: 150,
@@ -112,21 +125,27 @@ class HomeScreen extends StatelessWidget {
               autoPlayCurve: Curves.fastOutSlowIn,
               pauseAutoPlayOnTouch: true,
               pauseAutoPlayOnManualNavigate: true,
+              enlargeCenterPage:
+                  true, // optional: makes the center image a bit larger
             ),
-            items: ['Slide 1', 'Slide 2'].map((text) {
+            items: [
+              'assets/images/med image.png',
+              'assets/images/med image.png', // You can add different images
+            ].map((imagePath) {
               return Builder(
                 builder: (BuildContext context) {
                   return Container(
-                    width: MediaQuery.of(context).size.width,
                     margin: const EdgeInsets.symmetric(horizontal: 5.0),
                     decoration: BoxDecoration(
-                      color: Colors.amber,
                       borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey[200],
                     ),
-                    child: Center(
-                      child: Text(
-                        text,
-                        style: const TextStyle(fontSize: 16.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        imagePath,
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
                       ),
                     ),
                   );
@@ -155,7 +174,7 @@ class HomeScreen extends StatelessWidget {
           // Services grid
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 40),
               child: GridView.count(
                 crossAxisCount: 2,
                 crossAxisSpacing: 15,
@@ -167,7 +186,9 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) => const HospitalsScreen()),
+                            builder: (context) =>
+                                // const HospitalcategoryScreen()),
+                                HospitalTypesScreen()),
                       );
                     },
                   ),
@@ -184,10 +205,32 @@ class HomeScreen extends StatelessWidget {
                   _ServiceItem(
                     icon: Icons.local_hospital,
                     label: 'Specialities',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) => const SpecialtiesScreen()),
+                      );
+                    },
                   ),
                   _ServiceItem(
                     icon: Icons.medical_information,
                     label: 'Ambulance',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) => const AmbulanceScreen()),
+                      );
+                    },
+                  ),
+                  _ServiceItem(
+                    icon: Icons.water_drop,
+                    label: 'blood bank',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) => const BloodDonorScreen()),
+                      );
+                    },
                   ),
                 ],
               ),
