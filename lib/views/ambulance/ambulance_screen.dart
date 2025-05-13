@@ -169,8 +169,12 @@ class _AmbulanceScreenState extends State<AmbulanceScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.local_hospital,
-                              size: 40, color: Colors.green),
+                          Image.asset(
+                            'assets/images/amulance.jpeg',
+                            width: 150,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             ambulance.serviceName,

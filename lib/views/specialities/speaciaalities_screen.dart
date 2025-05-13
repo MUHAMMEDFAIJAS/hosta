@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hosta/model/hospital_model.dart';
+import 'package:hosta/service/hospital_service.dart';
 
 class HostaHeader extends StatelessWidget {
   const HostaHeader({super.key});
@@ -36,7 +38,7 @@ class HostaHeader extends StatelessWidget {
                 ),
               ),
               const Text(
-                'HOSPITAL TYPES',
+                'SPECIALITIES',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -118,15 +120,22 @@ class SpecialtiesScreen extends StatefulWidget {
 }
 
 class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
-  final List<String> specialties = [
-    'General Practitioner',
-    'OrthoPaedic Specialist',
-    'E N T specialist',
-    'Skin Specialist',
-    'Chest Specialist',
-  ];
+  List<Specialty> specialties = [];
+  bool isLoading = true;
 
-  int? expandedIndex;
+  @override
+  void initState() {
+    super.initState();
+    _loadSpecialties();
+  }
+
+  Future<void> _loadSpecialties() async {
+    final fetchedSpecialties = await HospitalService.fetchSpecialties();
+    setState(() {
+      specialties = fetchedSpecialties;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,34 +144,31 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
       body: Column(
         children: [
           const HostaHeader(),
-
           const SizedBox(height: 20),
-
-          // Expanded list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: specialties.length,
-              itemBuilder: (context, index) {
-                return _buildSpecialtyCard(index);
-              },
-            ),
-          ),
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: specialties.length,
+                    itemBuilder: (context, index) {
+                      return _buildSpecialtyCard(index);
+                    },
+                  ),
+                ),
         ],
       ),
     );
   }
 
   Widget _buildSpecialtyCard(int index) {
-    bool isExpanded = expandedIndex == index;
+    final specialty = specialties[index];
 
     return Column(
       children: [
         GestureDetector(
           onTap: () {
-            setState(() {
-              expandedIndex = isExpanded ? null : index;
-            });
+            // Handle tap if needed (like expanding)
           },
           child: Container(
             margin: const EdgeInsets.only(bottom: 15),
@@ -175,14 +181,14 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  specialties[index],
+                  specialty.name,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 Icon(
-                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  Icons.expand_more, // Add functionality if needed
                   color: Colors.green,
                 ),
               ],
@@ -190,74 +196,30 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
           ),
         ),
 
-        // Expanded Content
-        if (isExpanded)
-          Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Divider(color: Colors.green),
-                const SizedBox(height: 10),
-                const Text(
-                  'Hospitals list',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 5,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Life Care Clinics',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      const Text(
-                        'Malappuram-Manjeri road, Golden Tower\nPuliyengal, Irumbuzhi (PO)',
-                        style: TextStyle(color: Colors.black54, fontSize: 13),
-                      ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {
-                            // Navigate to details
-                          },
-                          child: const Text(
-                            'View Details',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
+        // Optionally show additional details for each specialty
+        Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(15),
           ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(color: Colors.green),
+              const SizedBox(height: 10),
+              Text(
+                specialty.description.isNotEmpty
+                    ? specialty.description
+                    : 'No description available.',
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 10),
+              ...specialty.doctors.map((doctor) => Text(doctor.name)).toList(),
+            ],
+          ),
+        ),
       ],
     );
   }

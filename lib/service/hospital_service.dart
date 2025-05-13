@@ -27,7 +27,7 @@ class HospitalService {
     }
   }
 
-    static Future<List<Hospital>> fetchHospitalsByType(String type) async {
+  static Future<List<Hospital>> fetchHospitalsByType(String type) async {
     final url = Uri.parse('$_baseUrl?type=$type');
 
     try {
@@ -46,19 +46,35 @@ class HospitalService {
       return [];
     }
   }
+
+  static Future<List<Specialty>> fetchSpecialties() async {
+  final url = Uri.parse('$_baseUrl');
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final List hospitalsJson = responseData['data'];
+
+      // Flatten all specialties from all hospitals into a single list
+      List<Specialty> allSpecialties = [];
+      for (var hospital in hospitalsJson) {
+        final specialties = hospital['specialties'];
+        for (var specialty in specialties) {
+          allSpecialties.add(Specialty.fromJson(specialty));
+        }
+      }
+
+      return allSpecialties;
+    } else {
+      print('Failed to load specialties: ${response.body}');
+      return [];
+    }
+  } catch (e) {
+    print('Error fetching specialties: $e');
+    return [];
+  }
 }
 
-
-//   static Future<List<Specialty>> fetchSpecialties(String hospitalId) async {
-//     final response =
-//         await http.get(Uri.parse('$_baseUrl/$hospitalId/specialties'));
-//     if (response.statusCode == 200) {
-//       final data = jsonDecode(response.body);
-//       final specialties =
-//           data['data'] as List; // Assuming specialties are in 'data' field
-//       return specialties.map((s) => Specialty.fromJson(s)).toList();
-//     } else {
-//       throw Exception('Failed to load specialties: ${response.statusCode}');
-//     }
-//   }
-// }
+}

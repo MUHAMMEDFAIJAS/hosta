@@ -20,18 +20,15 @@ class hospitalsProvider with ChangeNotifier {
   }
 
   Future<void> fetchHospitalsByType(String type) async {
-   
     notifyListeners();
 
     try {
       final hospitals = await HospitalService.fetchHospitalsByType(type);
       setHospitals(hospitals);
     } catch (e) {
-   
       print(e);
     } finally {
       notifyListeners();
     }
   }
-
 }

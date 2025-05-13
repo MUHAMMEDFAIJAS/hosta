@@ -14,9 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   TextEditingController passwordController = TextEditingController();
 
-  // TextEditingController nameController = TextEditingController();
-
-  // TextEditingController phoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -47,22 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               const SizedBox(height: 20),
-              // Container(
-              //   padding: const EdgeInsets.symmetric(horizontal: 15),
-              //   decoration: BoxDecoration(
-              //     border: Border(
-              //       bottom: BorderSide(color: Colors.grey.shade300),
-              //     ),
-              //   ),
-              //   child: TextField(
-              //     controller: nameController,
-              //     decoration: InputDecoration(
-              //       icon: Icon(Icons.person, color: Colors.green),
-              //       hintText: 'name',
-              //       border: InputBorder.none,
-              //     ),
-              //   ),
-              // ),
+            
 
               const SizedBox(height: 20),
               Container(
@@ -105,23 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // const SizedBox(height: 10),
-              // Container(
-              //   padding: const EdgeInsets.symmetric(horizontal: 15),
-              //   decoration: BoxDecoration(
-              //     border: Border(
-              //       bottom: BorderSide(color: Colors.grey.shade300),
-              //     ),
-              //   ),
-              //   child: TextField(
-              //     controller: phoneController,
-              //     decoration: InputDecoration(
-              //       icon: Icon(Icons.phone, color: Colors.green),
-              //       hintText: 'phone',
-              //       border: InputBorder.none,
-              //     ),
-              //   ),
-              // ),
+          
 
               const SizedBox(height: 20),
               Align(
@@ -189,7 +155,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 30),
 
-              // Sign up prompt
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

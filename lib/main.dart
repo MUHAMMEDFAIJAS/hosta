@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/controller/hospital_controller.dart';
-import 'package:hosta/views/hospitals/home_screen.dart';
 import 'package:hosta/views/signup/login_screen.dart';
 import 'package:provider/provider.dart';
 

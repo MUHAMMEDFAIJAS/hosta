@@ -3,7 +3,8 @@ import 'package:hosta/model/user_model.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService {
-  static const String _baseUrl = 'https://hospital-mangement-backend.vercel.app/api/users';
+  static const String _baseUrl =
+      'https://hospital-mangement-backend.vercel.app/api/users';
 
   // 🔥 Login User
   static Future<LoginResponse?> loginUser(String email, String password) async {
