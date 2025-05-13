@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/model/blood_bank_model.dart';
 import 'package:hosta/service/blood_bank_service.dart';
+import 'package:hosta/views/blood%20donar/add_blood_donor.dart';
 
 class HostaHeader extends StatelessWidget {
   const HostaHeader({super.key});
@@ -173,6 +174,16 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => AddBloodDonor(),
+          ));
+        },
+        backgroundColor: Colors.red[800],
+        child: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

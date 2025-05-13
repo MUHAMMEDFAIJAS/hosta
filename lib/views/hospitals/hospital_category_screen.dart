@@ -33,7 +33,7 @@ class HostaHeader extends StatelessWidget {
                   icon: Icon(Icons.chevron_left),
                   color: Colors.white,
                   onPressed: () {
-                    print('Button Pressed');
+                    Navigator.of(context).pop();
                   },
                 ),
               ),
@@ -160,6 +160,7 @@ class HospitalcategoryScreen extends StatelessWidget {
                           ));
                         },
                         child: Container(
+                          height: 170,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             color: Colors.grey[200],
@@ -171,99 +172,96 @@ class HospitalcategoryScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(12),
-                                  ),
-                                  child: Image.network(
-                                    hospital.image?.imageUrl ??
-                                        'https://via.placeholder.com/150',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(12),
+                                ),
+                                child: Image.network(
+                                  hospital.image?.imageUrl ??
+                                      'https://via.placeholder.com/150',
+                                  height: 100,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
                                     height: 100,
                                     width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                      height: 100,
-                                      width: double.infinity,
-                                      color: Colors.grey,
-                                      child: const Icon(Icons.broken_image),
+                                    color: Colors.grey,
+                                    child: const Icon(Icons.broken_image),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      hospital.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ),
+                                    const SizedBox(height: 20),
+                                    // Row(
+                                    //   mainAxisAlignment:
+                                    //       MainAxisAlignment.center,
+                                    //   children: [
+                                    //     const Icon(Icons.star,
+                                    //         color: Colors.green),
+                                    //     Text(
+                                    //       '0/5',
+                                    //       style: TextStyle(
+                                    //         color: Colors.green,
+                                    //         fontSize: 18,
+                                    //       ),
+                                    //     )
+                                    //   ],
+                                    // ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.lock_clock,
+                                            color: Colors.green),
+                                        Text(
+                                          'open now',
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 18,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.phone,
+                                            color: Colors.green),
+                                        Text(
+                                          hospital.phone,
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 18,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 8),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 5),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        hospital.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 20),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.star,
-                                              color: Colors.green),
-                                          Text(
-                                            '0/5',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 18,
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.lock_clock,
-                                              color: Colors.green),
-                                          Text(
-                                            'open now',
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 18,
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.phone,
-                                              color: Colors.green),
-                                          Text(
-                                            hospital.phone,
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 18,
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       );

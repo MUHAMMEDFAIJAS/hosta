@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hosta/model/hospital_model.dart';
+import 'package:hosta/service/doctor_service.dart';
 
 class HostaHeader extends StatelessWidget {
   const HostaHeader({super.key});
@@ -30,8 +32,7 @@ class HostaHeader extends StatelessWidget {
                   icon: Icon(Icons.chevron_left),
                   color: Colors.white,
                   onPressed: () {
-                    // Your action here
-                    print('Button Pressed');
+                    Navigator.of(context).pop();
                   },
                 ),
               ),
@@ -122,55 +123,40 @@ class DoctorsScreen extends StatelessWidget {
           HostaHeader(),
           const SizedBox(height: 10),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(10),
-              children: [
-                DoctorTile(
-                  name: 'Dr. Muhammed Junaid P.P',
-                  specialization: 'Generic Practitioner',
-                  availability: [
-                    {
-                      'day': 'Monday 27 March',
-                      'location': 'Life Care Clinics',
-                      'time': '09:00AM to 05:00PM'
-                    },
-                    {
-                      'day': 'Tuesday 28 March',
-                      'location': 'Life Care Clinics',
-                      'time': '09:00AM to 05:00PM'
-                    },
-                    {
-                      'day': 'Wednesday 29 March',
-                      'location': 'Life Care Clinics',
-                      'time': '09:00AM to 05:00PM'
-                    },
-                  ],
-                ),
-                const SizedBox(height: 10),
-                DoctorTile(
-                  name: 'Dr. Rajeev K.S',
-                  specialization: 'Generic Practitioner',
-                  availability: [
-                    {
-                      'day': 'Thursday 30 March',
-                      'location': 'City Hospital',
-                      'time': '10:00AM to 04:00PM'
-                    },
-                  ],
-                ),
-                const SizedBox(height: 10),
-                DoctorTile(
-                  name: 'Dr. Abdul Vaheed K.',
-                  specialization: 'Dentist',
-                  availability: [
-                    {
-                      'day': 'Friday 31 March',
-                      'location': 'Smile Dental Clinic',
-                      'time': '11:00AM to 06:00PM'
-                    },
-                  ],
-                ),
-              ],
+            child: FutureBuilder<List<Doctor>>(
+              future: DoctorService.fetchDoctors(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No doctors available.'));
+                }
+
+                final doctors = snapshot.data!;
+                return ListView.builder(
+                  padding: const EdgeInsets.all(10),
+                  itemCount: doctors.length,
+                  itemBuilder: (context, index) {
+                    final doc = doctors[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: DoctorTile(
+                        name: doc.name,
+                        specialization: doc.qualification,
+                        availability: doc.consulting.map((c) {
+                          return {
+                            'day': c.day,
+                            'location': 'N/A', // Add if you have clinic info
+                            'time': '${c.startTime} to ${c.endTime}',
+                          };
+                        }).toList(),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
