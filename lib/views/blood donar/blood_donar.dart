@@ -174,16 +174,16 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => AddBloodDonor(),
-          ));
-        },
-        backgroundColor: Colors.red[800],
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      // Navigator.of(context).push(MaterialPageRoute(
+      //   builder: (context) => AddBloodDonor(),
+      // ));
+      //   },
+      //   backgroundColor: Colors.red[800],
+      //   child: const Icon(Icons.add),
+      // ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

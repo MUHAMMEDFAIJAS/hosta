@@ -37,7 +37,7 @@ class HostaHeader extends StatelessWidget {
                 ),
               ),
               const Text(
-                'HOSPITAL TYPES',
+                'DOCTORS',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,

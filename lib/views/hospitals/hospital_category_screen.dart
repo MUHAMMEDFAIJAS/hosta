@@ -38,7 +38,7 @@ class HostaHeader extends StatelessWidget {
                 ),
               ),
               const Text(
-                'HOSPITAL TYPES',
+                'HOSPITALS',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -105,9 +105,12 @@ class HostaHeader extends StatelessWidget {
 }
 
 class HospitalcategoryScreen extends StatelessWidget {
-  final String type;
+  // final String type;
 
-  const HospitalcategoryScreen({super.key, required this.type});
+  const HospitalcategoryScreen({
+    super.key,
+    //  required this.type
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -121,17 +124,19 @@ class HospitalcategoryScreen extends StatelessWidget {
               child: Consumer<hospitalsProvider>(
                 builder: (context, provider, child) {
                   // Fetch hospitals by type when screen loads
-                  if (provider.hospitals.isEmpty ||
-                      provider.hospitals.first.type != type) {
+                  if (provider.hospitals.isEmpty
+                      // ||
+                      // provider.hospitals.first.type != type
+                      ) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      provider.fetchHospitalsByType(type);
+                      provider.fetchHospitals();
                     });
                     return const Center(child: CircularProgressIndicator());
                   }
 
                   if (provider.hospitals.isEmpty) {
                     return Center(
-                      child: Text('No $type hospitals found'),
+                      child: Text('No  hospitals found'),
                     );
                   }
 

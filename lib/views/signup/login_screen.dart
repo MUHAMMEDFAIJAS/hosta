@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/service/auth_service.dart';
-import 'package:hosta/views/hospitals/home_screen.dart';
+import 'package:hosta/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key});
@@ -13,7 +13,6 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailController = TextEditingController();
 
   TextEditingController passwordController = TextEditingController();
-
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 120,
               ),
               const SizedBox(height: 20),
-
               const Text(
                 'Welcome Back',
                 style: TextStyle(
@@ -42,10 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.green,
                 ),
               ),
-
               const SizedBox(height: 20),
-            
-
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -63,9 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 decoration: BoxDecoration(
@@ -86,9 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
-          
-
               const SizedBox(height: 20),
               Align(
                 alignment: Alignment.centerRight,
@@ -100,9 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -134,16 +122,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               const Text(
                 'Or',
                 style: TextStyle(color: Colors.black54),
               ),
-
               const SizedBox(height: 20),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -152,9 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _socialLoginButton('assets/images/Vector.png'),
                 ],
               ),
-
               const SizedBox(height: 30),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:hosta/model/hospital_model.dart';
 import 'package:hosta/service/hospital_service.dart';
 
@@ -28,11 +29,50 @@ class HospitalDetailsScreen extends StatefulWidget {
 class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String? _resolvedAddress;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _loadAddress();
+  }
+
+  void _loadAddress() async {
+    final hospitals = await HospitalService.fetchHospitals();
+    final hospital = hospitals.firstWhere(
+      (h) => h.id == widget.id,
+      orElse: () => Hospital(
+        id: '0',
+        name: 'Unknown',
+        address: 'Unknown',
+        email: 'Unknown',
+        phone: 'Unknown',
+        type: 'Unknown',
+        latitude: 0.0,
+        longitude: 0.0,
+        workingHours: [],
+        specialties: [],
+      ),
+    );
+
+    try {
+      final placemarks =
+          await placemarkFromCoordinates(hospital.latitude, hospital.longitude);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final address =
+            '${p.name}, ${p.locality}, ${p.administrativeArea}, ${p.country}';
+
+        setState(() {
+          _resolvedAddress = address;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _resolvedAddress = 'Address not available';
+      });
+    }
   }
 
   @override
@@ -143,8 +183,8 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(Icons.location_on,
-              'Chattipparamba, Kottakkal Road, Near MRPL Petroleum'),
+          _buildInfoRow(
+              Icons.location_on, _resolvedAddress ?? 'fetch address...'),
           const SizedBox(height: 10),
           _buildInfoRow(Icons.phone, widget.phone ?? '1234567890'),
           const SizedBox(height: 10),
@@ -323,11 +363,72 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
   }
 
   Widget _buildPlaceholderTab(String text) {
-    return Center(
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.black54),
-      ),
+    return FutureBuilder<List<Hospital>>(
+      future: HospitalService.fetchHospitals(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No hospital data found'));
+        } else {
+          final hospital = snapshot.data!.firstWhere(
+            (h) => h.id == widget.id,
+            orElse: () => Hospital(
+              id: '0',
+              name: 'Unknown',
+              address: 'Unknown',
+              email: 'Unknown',
+              phone: 'Unknown',
+              type: 'Unknown',
+              latitude: 0.0,
+              longitude: 0.0,
+              workingHours: [],
+              specialties: [],
+            ),
+          );
+
+          return FutureBuilder<List<Placemark>>(
+            future:
+                placemarkFromCoordinates(hospital.latitude, hospital.longitude),
+            builder: (context, placemarkSnapshot) {
+              if (placemarkSnapshot.connectionState ==
+                  ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (placemarkSnapshot.hasError) {
+                return const Center(child: Text('Failed to get location'));
+              } else if (!placemarkSnapshot.hasData ||
+                  placemarkSnapshot.data!.isEmpty) {
+                return const Center(child: Text('No location found'));
+              } else {
+                final placemark = placemarkSnapshot.data!.first;
+                final address = '${placemark.name}, '
+                    '${placemark.locality}, '
+                    '${placemark.administrativeArea}, '
+                    '${placemark.country}';
+
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.location_on,
+                          color: Colors.green, size: 40),
+                      const SizedBox(height: 10),
+                      Text(
+                        address,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 16, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+          );
+        }
+      },
     );
   }
 }

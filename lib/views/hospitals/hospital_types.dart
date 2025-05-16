@@ -78,13 +78,15 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
                         color: typeColors[type] ?? Colors.green,
                         onTap: () {
                           Provider.of<hospitalsProvider>(context, listen: false)
-                              .fetchHospitalsByType(type);
+                              .fetchHospitals();
+                          // Provider.of<hospitalsProvider>(context, listen: false)
+                          //     .fetchHospitalsByType(type);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => HospitalcategoryScreen(
-                                type: type,
-                              ),
+                                  // type: type,
+                                  ),
                             ),
                           );
                         },
@@ -140,8 +142,8 @@ class HospitalTypeCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: 80,
-                width: 80,
+                height: 160,
+                width: 160,
                 decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(imagePath),
@@ -149,7 +151,6 @@ class HospitalTypeCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
               Text(
                 type,
                 style: TextStyle(

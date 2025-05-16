@@ -122,6 +122,7 @@ class SpecialtiesScreen extends StatefulWidget {
 class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
   List<Specialty> specialties = [];
   bool isLoading = true;
+  int? expandedIndex; // 👈 Track the currently expanded specialty
 
   @override
   void initState() {
@@ -163,19 +164,29 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
 
   Widget _buildSpecialtyCard(int index) {
     final specialty = specialties[index];
+    final isExpanded = expandedIndex == index;
 
     return Column(
       children: [
         GestureDetector(
           onTap: () {
-            // Handle tap if needed (like expanding)
+            setState(() {
+              expandedIndex = isExpanded ? null : index;
+            });
           },
           child: Container(
-            margin: const EdgeInsets.only(bottom: 15),
+            margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
             decoration: BoxDecoration(
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,7 +199,7 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
                   ),
                 ),
                 Icon(
-                  Icons.expand_more, // Add functionality if needed
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
                   color: Colors.green,
                 ),
               ],
@@ -196,30 +207,49 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
           ),
         ),
 
-        // Optionally show additional details for each specialty
-        Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(15),
+        // 👇 Expanded content
+        if (isExpanded)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 5,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Divider(color: Colors.green),
+                const SizedBox(height: 10),
+                Text(
+                  specialty.description.isNotEmpty
+                      ? specialty.description
+                      : 'No description available.',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Doctors:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 5),
+                ...specialty.doctors.map(
+                  (doctor) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text('• ${doctor.name}'),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Divider(color: Colors.green),
-              const SizedBox(height: 10),
-              Text(
-                specialty.description.isNotEmpty
-                    ? specialty.description
-                    : 'No description available.',
-                style: const TextStyle(fontSize: 14),
-              ),
-              const SizedBox(height: 10),
-              ...specialty.doctors.map((doctor) => Text(doctor.name)).toList(),
-            ],
-          ),
-        ),
       ],
     );
   }
