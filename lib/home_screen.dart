@@ -8,97 +8,18 @@ import 'package:hosta/views/doctors/doctors_screen.dart';
 import 'package:hosta/views/hospitals/hospital_types.dart';
 import 'package:hosta/views/specialities/speaciaalities_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hosta/helper.dart' as helper;
 
-class HostaHeader extends StatelessWidget {
-  const HostaHeader({super.key});
+class ServiceItem {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.green[800],
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 50),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'HOSTA',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 34,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[600],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.menu, color: Colors.white, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              // Search Bar
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.green[400],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.search, color: Colors.white),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(fontSize: 14, color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText:
-                                'Search for Hospitals, Ambulance, Doctors...',
-                            hintStyle: TextStyle(color: Colors.white),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              // Settings Button
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[600],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child:
-                    const Icon(Icons.settings, color: Colors.white, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
+  ServiceItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 }
 
 class HomeScreen extends StatefulWidget {
@@ -111,6 +32,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late BannerAd _bannerAd;
   bool _isAdLoaded = false;
+  TextEditingController _searchController = TextEditingController();
+  List<ServiceItem> allServices = [];
+  List<ServiceItem> filteredServices = [];
 
   @override
   void initState() {
@@ -134,10 +58,62 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     _bannerAd.load();
+
+    allServices = [
+      ServiceItem(
+        icon: Icons.local_hospital,
+        label: 'Hospitals',
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => HospitalTypesScreen(),
+        )),
+      ),
+      ServiceItem(
+        icon: Icons.person_2_rounded,
+        label: 'Doctors',
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const DoctorsScreen(),
+        )),
+      ),
+      ServiceItem(
+        icon: Icons.local_hospital,
+        label: 'Specialities',
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const SpecialtiesScreen(),
+        )),
+      ),
+      ServiceItem(
+        icon: Icons.medical_information,
+        label: 'Ambulance',
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const AmbulanceScreen(),
+        )),
+      ),
+      ServiceItem(
+        icon: Icons.water_drop,
+        label: 'Blood Bank',
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const BloodDonorScreen(),
+        )),
+      ),
+    ];
+
+    filteredServices = List.from(allServices);
+
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      filteredServices = allServices
+          .where((item) => item.label.toLowerCase().contains(query))
+          .toList();
+    });
   }
 
   @override
   void dispose() {
+    _searchController.dispose();
     _bannerAd.dispose();
     super.dispose();
   }
@@ -170,10 +146,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Column(
               children: [
-                const HostaHeader(),
+                helper.HostaHeader(
+                  controller: _searchController,
+                ),
                 const SizedBox(height: 20),
-
-                // Show carousel only if ad loaded
                 if (carouselItems.isNotEmpty)
                   CarouselSlider(
                     options: CarouselOptions(
@@ -194,7 +170,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 150,
                     child: Center(child: CircularProgressIndicator()),
                   ),
-
                 const SizedBox(height: 20),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
@@ -209,7 +184,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -217,53 +191,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 15,
                       mainAxisSpacing: 15,
-                      children: [
-                        _ServiceItem(
-                          icon: Icons.local_hospital,
-                          label: 'Hospitals',
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => HospitalTypesScreen(),
-                            ));
-                          },
-                        ),
-                        _ServiceItem(
-                          icon: Icons.person_2_rounded,
-                          label: 'Doctors',
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const DoctorsScreen(),
-                            ));
-                          },
-                        ),
-                        _ServiceItem(
-                          icon: Icons.local_hospital,
-                          label: 'Specialities',
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const SpecialtiesScreen(),
-                            ));
-                          },
-                        ),
-                        _ServiceItem(
-                          icon: Icons.medical_information,
-                          label: 'Ambulance',
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const AmbulanceScreen(),
-                            ));
-                          },
-                        ),
-                        _ServiceItem(
-                          icon: Icons.water_drop,
-                          label: 'Blood Bank',
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const BloodDonorScreen(),
-                            ));
-                          },
-                        ),
-                      ],
+                      children: filteredServices
+                          .map((item) => _ServiceItem(
+                                icon: item.icon,
+                                label: item.label,
+                                onTap: item.onTap,
+                              ))
+                          .toList(),
                     ),
                   ),
                 ),
@@ -305,7 +239,14 @@ class _ServiceItem extends StatelessWidget {
           children: [
             Icon(icon, size: 60, color: Colors.green),
             const SizedBox(height: 10),
-            Text(label, style: const TextStyle(fontSize: 18)),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight
+                    .normal, // Will use Poppins because it's set globally
+              ),
+            )
           ],
         ),
       ),

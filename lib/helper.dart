@@ -1,53 +1,219 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_mobile_ads/google_mobile_ads.dart';
+// lib/widgets/hosta_header.dart
 
-// class AdBannerWidget extends StatefulWidget {
-//   const AdBannerWidget({super.key});
+import 'package:flutter/material.dart';
 
-//   @override
-//   State<AdBannerWidget> createState() => _AdBannerWidgetState();
-// }
+class HostaHeader extends StatelessWidget {
+  final TextEditingController controller;
 
-// class _AdBannerWidgetState extends State<AdBannerWidget> {
-//   late BannerAd _bannerAd;
-//   bool _isAdLoaded = false;
+  const HostaHeader({super.key, required this.controller});
 
-//   @override
-//   void initState() {
-//     super.initState();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.green[800],
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 50),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'HOSTA',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green[600],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.menu, color: Colors.white, size: 20),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.green[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: controller,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText:
+                                'Search for Hospitals, Ambulance, Doctors...',
+                            hintStyle: TextStyle(color: Colors.white),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
 
-//     _bannerAd = BannerAd(
-//       adUnitId: 'ca-app-pub-9727415183002174/2749824360', // ✅ your ad unit
-//       size: AdSize.banner,
-//       request: AdRequest(),
-//       listener: BannerAdListener(
-//         onAdLoaded: (Ad ad) {
-//           setState(() {
-//             _isAdLoaded = true;
-//           });
-//         },
-//         onAdFailedToLoad: (Ad ad, LoadAdError error) {
-//           ad.dispose();
-//           print('Ad failed to load: $error');
-//         },
-//       ),
-//     )..load();
-//   }
 
-//   @override
-//   void dispose() {
-//     _bannerAd.dispose();
-//     super.dispose();
-//   }
+class CustomHeader extends StatelessWidget {
+  final String title;
+  final String searchHint;
+  final VoidCallback? onBack;
+  final VoidCallback? onSettingsPressed;
+  final VoidCallback? onMenuPressed;
+  final TextEditingController? searchController;  // Added searchController here
+  final ValueChanged<String>? onChanged;  // To handle text changes
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return _isAdLoaded
-//         ? SizedBox(
-//             height: _bannerAd.size.height.toDouble(),
-//             width: _bannerAd.size.width.toDouble(),
-//             child: AdWidget(ad: _bannerAd),
-//           )
-//         : const SizedBox(); 
-//   }
-// }
+  const CustomHeader({
+    super.key,
+    required this.title,
+    this.searchHint = 'Search...',
+    this.onBack,
+    this.onSettingsPressed,
+    this.onMenuPressed,
+    this.searchController,  // Add this to constructor
+    this.onChanged,         // Add this to constructor for callback on text change
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.green[800],
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(20),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 50),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Back Button
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.green.shade700,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  color: Colors.white,
+                  onPressed: onBack ?? () => Navigator.of(context).pop(),
+                ),
+              ),
+
+              // Title
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              // Menu Button
+              GestureDetector(
+                onTap: onMenuPressed,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green[600],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.menu, color: Colors.white, size: 20),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Search Bar + Settings Icon
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.green[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,  // Use controller here
+                          onChanged: onChanged,          // Handle text changes
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: searchHint,
+                            hintStyle: const TextStyle(color: Colors.white),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // const SizedBox(width: 10),
+              // GestureDetector(
+              //   onTap: onSettingsPressed,
+              //   child: Container(
+              //     padding: const EdgeInsets.all(8),
+              //     decoration: BoxDecoration(
+              //       color: Colors.green[600],
+              //       borderRadius: BorderRadius.circular(10),
+              //     ),
+              //     child: const Icon(Icons.settings,
+              //         color: Colors.white, size: 20),
+              //   ),
+              // ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}

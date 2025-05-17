@@ -1,6 +1,6 @@
 name: hosta
 description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
 version: 1.0.0+1
 
@@ -30,8 +30,16 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/images/fonts/Poppins-Regular.ttf
+        - asset: assets/images/fonts/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/images/fonts/Poppins-Thin.ttf
+          weight: 100
 
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/icons/logo-hosta.png"  
+  image_path: "assets/images/icons/logo-hosta.png"

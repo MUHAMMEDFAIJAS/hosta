@@ -1,118 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:hosta/helper.dart';
 import 'package:hosta/model/hospital_model.dart';
 import 'package:hosta/service/doctor_service.dart';
 
-class HostaHeader extends StatelessWidget {
-  const HostaHeader({super.key});
+class DoctorsScreen extends StatefulWidget {
+  const DoctorsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.green[800],
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 50),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.green.shade700, // Slightly darker green button
-                  borderRadius: BorderRadius.circular(12), // Rounded corners
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.chevron_left),
-                  color: Colors.white,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-              const Text(
-                'DOCTORS',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[600],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.menu, color: Colors.white, size: 20),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Search bar and Settings icon
-          Row(
-            children: [
-              // Search Bar
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.green[400],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.search, color: Colors.white),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(fontSize: 14, color: Colors.white),
-                          decoration: InputDecoration(
-                            hintText:
-                                'Search for Hospitals, Ambulance, Doctors...',
-                            hintStyle: TextStyle(color: Colors.white),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 10),
-
-              // Settings Button
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[600],
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child:
-                    const Icon(Icons.settings, color: Colors.white, size: 20),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
+  State<DoctorsScreen> createState() => _DoctorsScreenState();
 }
 
-class DoctorsScreen extends StatelessWidget {
-  const DoctorsScreen({super.key});
+class _DoctorsScreenState extends State<DoctorsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Doctor> _allDoctors = [];
+  List<Doctor> _filteredDoctors = [];
+  bool _isLoading = true;
+  String _error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDoctors();
+    _searchController.addListener(_filterDoctors);
+  }
+
+  Future<void> _loadDoctors() async {
+    try {
+      final doctors = await DoctorService.fetchDoctors();
+      setState(() {
+        _allDoctors = doctors;
+        _filteredDoctors = doctors;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _filterDoctors() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredDoctors = _allDoctors.where((doc) {
+        return doc.name.toLowerCase().contains(query) ||
+            doc.qualification.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,44 +62,48 @@ class DoctorsScreen extends StatelessWidget {
       backgroundColor: Colors.grey[100],
       body: Column(
         children: [
-          HostaHeader(),
+          CustomHeader(
+            title: 'DOCTORS',
+            searchHint: 'Search by name or qualification...',
+            searchController: _searchController,
+            onChanged: (_) {}, // now handled by controller listener
+            onBack: () => Navigator.of(context).pop(),
+            onMenuPressed: () {},
+            onSettingsPressed: () {},
+          ),
           const SizedBox(height: 10),
           Expanded(
-            child: FutureBuilder<List<Doctor>>(
-              future: DoctorService.fetchDoctors(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No doctors available.'));
-                }
-
-                final doctors = snapshot.data!;
-                return ListView.builder(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: doctors.length,
-                  itemBuilder: (context, index) {
-                    final doc = doctors[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: DoctorTile(
-                        name: doc.name,
-                        specialization: doc.qualification,
-                        availability: doc.consulting.map((c) {
-                          return {
-                            'day': c.day,
-                            'location': 'N/A', // Add if you have clinic info
-                            'time': '${c.startTime} to ${c.endTime}',
-                          };
-                        }).toList(),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error.isNotEmpty
+                    ? Center(
+                        child: Text(_error,
+                            style: TextStyle(fontFamily: 'Poppins')))
+                    : _filteredDoctors.isEmpty
+                        ? const Center(
+                            child: Text('No doctors found.',
+                                style: TextStyle(fontFamily: 'Poppins')))
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(10),
+                            itemCount: _filteredDoctors.length,
+                            itemBuilder: (context, index) {
+                              final doc = _filteredDoctors[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: DoctorTile(
+                                  name: doc.name,
+                                  specialization: doc.qualification,
+                                  availability: doc.consulting.map((c) {
+                                    return {
+                                      'day': c.day,
+                                      'location': '',
+                                      'time': '${c.startTime} to ${c.endTime}',
+                                    };
+                                  }).toList(),
+                                ),
+                              );
+                            },
+                          ),
           ),
         ],
       ),
@@ -184,11 +130,18 @@ class DoctorTile extends StatelessWidget {
       childrenPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       title: Text(
         name,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          fontFamily: 'Poppins',
+        ),
       ),
       subtitle: Text(
         specialization,
-        style: const TextStyle(color: Colors.grey),
+        style: const TextStyle(
+          color: Colors.grey,
+          fontFamily: 'Poppins',
+        ),
       ),
       children: availability.map((item) {
         return Container(
@@ -210,15 +163,18 @@ class DoctorTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                item['day']!,
+                item['day'] ?? '',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.green,
+                  fontFamily: 'Poppins',
                 ),
               ),
               const SizedBox(height: 5),
-              Text(item['location']!),
-              Text(item['time']!),
+              Text(
+                item['time'] ?? '',
+                style: const TextStyle(fontFamily: 'Poppins'),
+              ),
             ],
           ),
         );

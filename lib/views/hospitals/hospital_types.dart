@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/controller/hospital_controller.dart';
+import 'package:hosta/helper.dart';
 import 'package:hosta/views/hospitals/hospital_category_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -11,28 +12,47 @@ class HospitalTypesScreen extends StatefulWidget {
 }
 
 class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
-  final Map<String, String> typeImages = {
-    'Allopathy': 'assets/images/Rectangle 1142 (1).png',
-    'Ayurveda': 'assets/images/Rectangle 1144.png',
-    'homeopathy': 'assets/images/Rectangle 1143.png',
-    'acupuncture': 'assets/images/image.png',
-    'unani': 'assets/images/Rectangle 1145.png'
-  };
-
-  final Map<String, Color> typeColors = {
-    'Allopathy': Colors.blue,
-    'Ayurveda': Colors.orange,
-    'homeopathy': Colors.green,
-    'acupuncture': Colors.brown,
-    'unani': Colors.red,
-  };
+  late TextEditingController searchController;
+  String searchKeyword = '';
 
   @override
   void initState() {
     super.initState();
+    searchController = TextEditingController();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<hospitalsProvider>(context, listen: false).fetchHospitals();
     });
+
+    searchController.addListener(() {
+      setState(() {
+        searchKeyword = searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  // Helper function to get image path for a hospital type dynamically
+  String getImageForType(String type) {
+    final lowerType = type.toLowerCase();
+    if (lowerType.contains('allopathy')) {
+      return 'assets/images/Rectangle 1142 (1).png';
+    } else if (lowerType.contains('ayurveda')) {
+      return 'assets/images/Rectangle 1144.png';
+    } else if (lowerType.contains('homeopathy')) {
+      return 'assets/images/Rectangle 1143.png';
+    } else if (lowerType.contains('acupuncture')) {
+      return 'assets/images/image.png';
+    } else if (lowerType.contains('unani')) {
+      return 'assets/images/Rectangle 1145.png';
+    }
+    // Default image if none match
+    return 'assets/images/Rectangle 1145.png';
   }
 
   @override
@@ -40,7 +60,14 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
     return Scaffold(
       body: Column(
         children: [
-          const HostaHeader(),
+          CustomHeader(
+            title: 'HOSPITAL TYPES',
+            searchHint: 'Search for Hospitals, Ambulance, Doctors...',
+            onBack: () => Navigator.of(context).pop(),
+            onMenuPressed: () {},
+            onSettingsPressed: () {},
+            searchController: searchController,
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -50,22 +77,20 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  // Get unique hospital types
+                  // Get unique types and filter by search keyword
                   final types = provider.hospitals
                       .map((hospital) => hospital.type)
                       .toSet()
+                      .where(
+                          (type) => type.toLowerCase().contains(searchKeyword))
                       .toList();
-
-                  if (types.isEmpty) {
-                    return const Center(child: Text('No hospital types found'));
-                  }
 
                   return GridView.builder(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 7,
+                      mainAxisSpacing: 7,
                       childAspectRatio: 0.9,
                     ),
                     itemCount: types.length,
@@ -73,20 +98,13 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
                       final type = types[index];
                       return HospitalTypeCard(
                         type: type,
-                        imagePath: typeImages[type] ??
-                            'assets/images/Rectangle 1145.png',
-                        color: typeColors[type] ?? Colors.green,
+                        imagePath: getImageForType(type),
                         onTap: () {
-                          Provider.of<hospitalsProvider>(context, listen: false)
-                              .fetchHospitals();
-                          // Provider.of<hospitalsProvider>(context, listen: false)
-                          //     .fetchHospitalsByType(type);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => HospitalcategoryScreen(
-                                  // type: type,
-                                  ),
+                              builder: (context) =>
+                                  HospitalcategoryScreen(selectedType: type),
                             ),
                           );
                         },
@@ -106,14 +124,12 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
 class HospitalTypeCard extends StatelessWidget {
   final String type;
   final String imagePath;
-  final Color color;
   final VoidCallback onTap;
 
   const HospitalTypeCard({
     super.key,
     required this.type,
     required this.imagePath,
-    required this.color,
     required this.onTap,
   });
 
@@ -122,41 +138,53 @@ class HospitalTypeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 4,
+        elevation: 6,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(16),
         ),
+        margin: const EdgeInsets.all(12), // margin outside card
         child: Container(
+          width: 180,
+          height: 220,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withOpacity(0.2),
-                color.withOpacity(0.05),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.15),
+                spreadRadius: 2,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                height: 160,
-                width: 160,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(imagePath),
-                    fit: BoxFit.contain,
-                  ),
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: Image.asset(
+                  imagePath,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
               ),
-              Text(
-                type,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color,
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  type,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins', // 👈 Added this line
+                    fontSize: 20,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
             ],

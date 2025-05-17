@@ -27,26 +27,6 @@ class HospitalService {
     }
   }
 
-  // static Future<List<Hospital>> fetchHospitalsByType(String type) async {
-  //   final url = Uri.parse('$_baseUrl?type=$type');
-
-  //   try {
-  //     final response = await http.get(url);
-
-  //     if (response.statusCode == 200) {
-  //       final responseData = jsonDecode(response.body);
-  //       final List hospitalsJson = responseData['data'];
-  //       return hospitalsJson.map((e) => Hospital.fromJson(e)).toList();
-  //     } else {
-  //       print('Failed to load hospitals by type: ${response.body}');
-  //       return [];
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching hospitals by type: $e');
-  //     return [];
-  //   }
-  // }
-
   static Future<List<Specialty>> fetchSpecialties() async {
   final url = Uri.parse('$_baseUrl');
 
@@ -78,3 +58,23 @@ class HospitalService {
 }
 
 }
+
+  // static Future<List<Hospital>> fetchHospitalsByType(String type) async {
+  //   final url = Uri.parse('$_baseUrl?type=$type');
+
+  //   try {
+  //     final response = await http.get(url);
+
+  //     if (response.statusCode == 200) {
+  //       final responseData = jsonDecode(response.body);
+  //       final List hospitalsJson = responseData['data'];
+  //       return hospitalsJson.map((e) => Hospital.fromJson(e)).toList();
+  //     } else {
+  //       print('Failed to load hospitals by type: ${response.body}');
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching hospitals by type: $e');
+  //     return [];
+  //   }
+  // }
