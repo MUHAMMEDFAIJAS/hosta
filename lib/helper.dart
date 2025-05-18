@@ -61,6 +61,7 @@ class HostaHeader extends StatelessWidget {
                       Expanded(
                         child: TextField(
                           controller: controller,
+                          cursorColor: Colors.white,
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.white,
@@ -86,15 +87,14 @@ class HostaHeader extends StatelessWidget {
   }
 }
 
-
 class CustomHeader extends StatelessWidget {
   final String title;
   final String searchHint;
   final VoidCallback? onBack;
   final VoidCallback? onSettingsPressed;
   final VoidCallback? onMenuPressed;
-  final TextEditingController? searchController;  // Added searchController here
-  final ValueChanged<String>? onChanged;  // To handle text changes
+  final TextEditingController? searchController; // Added searchController here
+  final ValueChanged<String>? onChanged; // To handle text changes
 
   const CustomHeader({
     super.key,
@@ -103,8 +103,8 @@ class CustomHeader extends StatelessWidget {
     this.onBack,
     this.onSettingsPressed,
     this.onMenuPressed,
-    this.searchController,  // Add this to constructor
-    this.onChanged,         // Add this to constructor for callback on text change
+    this.searchController, // Add this to constructor
+    this.onChanged, // Add this to constructor for callback on text change
   });
 
   @override
@@ -181,8 +181,10 @@ class CustomHeader extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
-                          controller: searchController,  // Use controller here
-                          onChanged: onChanged,          // Handle text changes
+                          cursorColor: Colors.white,
+
+                          controller: searchController, // Use controller here
+                          onChanged: onChanged, // Handle text changes
                           style: const TextStyle(
                               fontSize: 14, color: Colors.white),
                           decoration: InputDecoration(
@@ -196,19 +198,7 @@ class CustomHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              // const SizedBox(width: 10),
-              // GestureDetector(
-              //   onTap: onSettingsPressed,
-              //   child: Container(
-              //     padding: const EdgeInsets.all(8),
-              //     decoration: BoxDecoration(
-              //       color: Colors.green[600],
-              //       borderRadius: BorderRadius.circular(10),
-              //     ),
-              //     child: const Icon(Icons.settings,
-              //         color: Colors.white, size: 20),
-              //   ),
-              // ),
+             
             ],
           ),
           const SizedBox(height: 20),

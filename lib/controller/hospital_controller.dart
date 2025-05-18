@@ -18,6 +18,22 @@ class hospitalsProvider with ChangeNotifier {
       print('Error fetching hospitals: $e');
     }
   }
+Future<void> fetchHospitalsNearUser({
+  required double lat,
+  required double lon,
+  double radiusInKm = 20,
+}) async {
+  try {
+    final filteredHospitals = await HospitalService.fetchHospitals(
+      userLat: lat,
+      userLon: lon,
+      radiusInKm: radiusInKm,
+    );
+    setHospitals(filteredHospitals);
+  } catch (e) {
+    print('Error filtering hospitals: $e');
+  }
+}
 
   // Future<void> fetchHospitalsByType(String type) async {
   //   notifyListeners();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../model/ambulance_model.dart';
 import '../../service/ambulance_service.dart';
@@ -17,6 +18,16 @@ class _AmbulanceScreenState extends State<AmbulanceScreen> {
   List<Ambulance> filteredAmbulances = [];
 
   final TextEditingController _searchController = TextEditingController();
+  void _callNumber(String phoneNumber) async {
+    final Uri url = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch phone app')),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -114,7 +125,16 @@ class _AmbulanceScreenState extends State<AmbulanceScreen> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 4),
-                                Text('📞 ${ambulance.phone}'),
+                                GestureDetector(
+                                  onTap: () => _callNumber(ambulance.phone),
+                                  child: Text(
+                                    '📞 ${ambulance.phone}',
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      // decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           );

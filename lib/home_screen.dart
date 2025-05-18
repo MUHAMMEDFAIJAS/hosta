@@ -9,6 +9,7 @@ import 'package:hosta/views/hospitals/hospital_types.dart';
 import 'package:hosta/views/specialities/speaciaalities_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hosta/helper.dart' as helper;
+import 'package:location/location.dart';
 
 class ServiceItem {
   final IconData icon;
@@ -35,10 +36,12 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController _searchController = TextEditingController();
   List<ServiceItem> allServices = [];
   List<ServiceItem> filteredServices = [];
+  LocationData? _locationData;
 
   @override
   void initState() {
     super.initState();
+    _getLocationOnStartup();
 
     _bannerAd = BannerAd(
       adUnitId: 'ca-app-pub-3940256099942544/6300978111',
@@ -109,6 +112,30 @@ class _HomeScreenState extends State<HomeScreen> {
           .where((item) => item.label.toLowerCase().contains(query))
           .toList();
     });
+  }
+
+  Future<void> _getLocationOnStartup() async {
+    Location location = Location();
+
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) return;
+    }
+
+    PermissionStatus permissionGranted = await location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) return;
+    }
+
+    LocationData currentLocation = await location.getLocation();
+    setState(() {
+      _locationData = currentLocation;
+    });
+
+    print(
+        "Current location: ${_locationData?.latitude}, ${_locationData?.longitude}");
   }
 
   @override

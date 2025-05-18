@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:hosta/model/hospital_model.dart';
 import 'package:hosta/service/hospital_service.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:location/location.dart' as loc;
 
 class HospitalDetailsScreen extends StatefulWidget {
   final String? id;
@@ -165,7 +168,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
                         _buildInformationTab(),
                         _buildSpecialtiesTab(),
                         _buildHoursTab(),
-                        _buildPlaceholderTab('Location info here'),
+                        _buildPlaceholderTab(),
                       ],
                     ),
                   ),
@@ -362,7 +365,7 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
     );
   }
 
-  Widget _buildPlaceholderTab(String text) {
+  Widget _buildPlaceholderTab() {
     return FutureBuilder<List<Hospital>>(
       future: HospitalService.fetchHospitals(),
       builder: (context, snapshot) {
@@ -389,40 +392,86 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
             ),
           );
 
-          return FutureBuilder<List<Placemark>>(
-            future:
-                placemarkFromCoordinates(hospital.latitude, hospital.longitude),
-            builder: (context, placemarkSnapshot) {
-              if (placemarkSnapshot.connectionState ==
-                  ConnectionState.waiting) {
+          return FutureBuilder<loc.LocationData>(
+            future: _getCurrentLocation(),
+            builder: (context, locationSnapshot) {
+              if (locationSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
-              } else if (placemarkSnapshot.hasError) {
-                return const Center(child: Text('Failed to get location'));
-              } else if (!placemarkSnapshot.hasData ||
-                  placemarkSnapshot.data!.isEmpty) {
-                return const Center(child: Text('No location found'));
+              } else if (locationSnapshot.hasError ||
+                  !locationSnapshot.hasData) {
+                return const Center(
+                    child: Text('Failed to get current location'));
               } else {
-                final placemark = placemarkSnapshot.data!.first;
-                final address = '${placemark.name}, '
-                    '${placemark.locality}, '
-                    '${placemark.administrativeArea}, '
-                    '${placemark.country}';
+                final userLocation = locationSnapshot.data!;
+                final userLatLng =
+                    LatLng(userLocation.latitude!, userLocation.longitude!);
+                final hospitalLatLng =
+                    LatLng(hospital.latitude, hospital.longitude);
 
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.location_on,
-                          color: Colors.green, size: 40),
-                      const SizedBox(height: 10),
-                      Text(
-                        address,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 16, color: Colors.black87),
+                final distanceInKm = Distance().as(
+                  LengthUnit.Kilometer,
+                  userLatLng,
+                  hospitalLatLng,
+                );
+
+                return Column(
+                  children: [
+                    Expanded(
+                      child: FlutterMap(
+                        options: MapOptions(
+                          initialCenter: userLatLng,
+                          initialZoom: 13,
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            subdomains: const ['a', 'b', 'c'],
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: userLatLng,
+                                width: 80,
+                                height: 80,
+                                child: const Icon(
+                                  Icons.person_pin_circle,
+                                  color: Colors.blue,
+                                  size: 40,
+                                ),
+                              ),
+                              Marker(
+                                point: hospitalLatLng,
+                                width: 80,
+                                height: 80,
+                                child: const Icon(
+                                  Icons.local_hospital,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                              ),
+                            ],
+                          ),
+                          PolylineLayer(
+                            polylines: [
+                              Polyline(
+                                points: [userLatLng, hospitalLatLng],
+                                color: Colors.green,
+                                strokeWidth: 4,
+                              )
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Distance to hospital: ${distanceInKm.toStringAsFixed(2)} km',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
                 );
               }
             },
@@ -430,5 +479,28 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
         }
       },
     );
+  }
+
+// Helper method to get current location using location package
+  Future<loc.LocationData> _getCurrentLocation() async {
+    loc.Location location = loc.Location();
+
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        throw Exception('Location service disabled');
+      }
+    }
+
+    loc.PermissionStatus permissionGranted = await location.hasPermission();
+    if (permissionGranted == loc.PermissionStatus.denied) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != loc.PermissionStatus.granted) {
+        throw Exception('Location permission denied');
+      }
+    }
+
+    return await location.getLocation();
   }
 }

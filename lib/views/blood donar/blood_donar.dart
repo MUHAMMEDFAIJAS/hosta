@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:hosta/model/blood_bank_model.dart';
 import 'package:hosta/service/blood_bank_service.dart';
 import 'package:hosta/views/blood%20donar/add_blood_donor.dart';
 
 class HostaHeader extends StatelessWidget {
   final TextEditingController searchController;
+  final List<String> bloodGroups;
+  final String selectedBloodGroup;
+  final Function(String?) onBloodGroupChanged;
 
-  const HostaHeader({super.key, required this.searchController});
+  const HostaHeader({
+    super.key,
+    required this.searchController,
+    required this.bloodGroups,
+    required this.selectedBloodGroup,
+    required this.onBloodGroupChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +84,7 @@ class HostaHeader extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
+                          cursorColor: Colors.white,
                           controller: searchController,
                           style: const TextStyle(
                               fontSize: 14, color: Colors.white),
@@ -89,16 +100,26 @@ class HostaHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              // const SizedBox(width: 10),
-              // Container(
-              //   padding: const EdgeInsets.all(8),
-              //   decoration: BoxDecoration(
-              //     color: Colors.red[600],
-              //     borderRadius: BorderRadius.circular(10),
-              //   ),
-              //   child:
-              //       const Icon(Icons.settings, color: Colors.white, size: 20),
-              // ),
+              Gap(10),
+              SizedBox(
+                width: 60,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedBloodGroup,
+                    dropdownColor: Colors.red[300],
+                    style: const TextStyle(color: Colors.white),
+                    iconEnabledColor: Colors.white,
+                    items: bloodGroups
+                        .map((bg) => DropdownMenuItem(
+                              value: bg,
+                              child: Text(bg,
+                                  style: const TextStyle(color: Colors.white)),
+                            ))
+                        .toList(),
+                    onChanged: onBloodGroupChanged,
+                  ),
+                ),
+              ),
             ],
           ),
         ],
@@ -119,6 +140,45 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
   List<BloodDonor> allDonors = [];
   List<BloodDonor> filteredDonors = [];
   final TextEditingController _searchController = TextEditingController();
+  final List<String> _bloodGroups = [
+    "ALL",
+    "O+",
+    "O-",
+    "AB+",
+    "AB-",
+    "A+",
+    "A-",
+    "B+",
+    "B-"
+  ];
+
+  Widget _buildBloodGroupDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: DropdownButtonFormField<String>(
+        value: _selectedBloodGroup,
+        items: _bloodGroups
+            .map((bg) => DropdownMenuItem(value: bg, child: Text(bg)))
+            .toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              _selectedBloodGroup = value;
+              _onSearchChanged(); // re-filter donors
+            });
+          }
+        },
+        decoration: const InputDecoration(
+          labelText: 'Filter by Blood Group',
+          border: OutlineInputBorder(),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  String _selectedBloodGroup = "ALL";
 
   @override
   void initState() {
@@ -139,12 +199,14 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
 
     setState(() {
       filteredDonors = allDonors.where((donor) {
-        final nameLower = donor.name.toLowerCase();
-        final bloodGroupLower = donor.bloodGroup.toLowerCase();
-        final placeLower = donor.address.place.toLowerCase();
-        return nameLower.contains(query) ||
-            bloodGroupLower.contains(query) ||
-            placeLower.contains(query);
+        final matchesQuery = donor.name.toLowerCase().contains(query) ||
+            donor.bloodGroup.toLowerCase().contains(query) ||
+            donor.address.place.toLowerCase().contains(query);
+
+        final matchesBloodGroup = _selectedBloodGroup == "ALL" ||
+            donor.bloodGroup == _selectedBloodGroup;
+
+        return matchesQuery && matchesBloodGroup;
       }).toList();
     });
   }
@@ -160,7 +222,19 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
     return Scaffold(
       body: Column(
         children: [
-          HostaHeader(searchController: _searchController),
+          HostaHeader(
+            searchController: _searchController,
+            bloodGroups: _bloodGroups,
+            selectedBloodGroup: _selectedBloodGroup,
+            onBloodGroupChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  _selectedBloodGroup = value;
+                  _onSearchChanged();
+                });
+              }
+            },
+          ),
           Expanded(
             child: allDonors.isEmpty
                 ? const Center(child: CircularProgressIndicator())
@@ -199,6 +273,16 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
                       ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: Colors.red[700],
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AddBloodDonor()),
+          );
+        },
+        child: const Icon(Icons.add,color: Colors.white, size: 30),
       ),
     );
   }

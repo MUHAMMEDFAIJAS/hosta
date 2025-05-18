@@ -37,7 +37,7 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
     super.dispose();
   }
 
-  // Helper function to get image path for a hospital type dynamically
+
   String getImageForType(String type) {
     final lowerType = type.toLowerCase();
     if (lowerType.contains('allopathy')) {
@@ -87,11 +87,11 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
 
                   return GridView.builder(
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 7,
-                      mainAxisSpacing: 7,
-                      childAspectRatio: 0.9,
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 200, // Max width for each grid item
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      childAspectRatio: 0.9, // Adjust height-to-width ratio
                     ),
                     itemCount: types.length,
                     itemBuilder: (context, index) {
@@ -180,7 +180,7 @@ class HospitalTypeCard extends StatelessWidget {
                   type,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontFamily: 'Poppins', // 👈 Added this line
+                    fontFamily: 'Poppins',
                     fontSize: 20,
                     fontWeight: FontWeight.normal,
                     color: Colors.black87,
