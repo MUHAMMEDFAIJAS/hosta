@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hosta/controller/donor_controllor.dart';
+import 'package:hosta/helper.dart';
+import 'package:provider/provider.dart';
 import 'package:gap/gap.dart';
 import 'package:hosta/model/blood_bank_model.dart';
-import 'package:hosta/service/blood_bank_service.dart';
 import 'package:hosta/views/blood%20donar/add_blood_donor.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class HostaHeader extends StatelessWidget {
+class HostaHeader extends StatefulWidget {
   final TextEditingController searchController;
   final List<String> bloodGroups;
   final String selectedBloodGroup;
@@ -18,6 +21,11 @@ class HostaHeader extends StatelessWidget {
     required this.onBloodGroupChanged,
   });
 
+  @override
+  State<HostaHeader> createState() => _HostaHeaderState();
+}
+
+class _HostaHeaderState extends State<HostaHeader> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -85,7 +93,7 @@ class HostaHeader extends StatelessWidget {
                       Expanded(
                         child: TextField(
                           cursorColor: Colors.white,
-                          controller: searchController,
+                          controller: widget.searchController,
                           style: const TextStyle(
                               fontSize: 14, color: Colors.white),
                           decoration: const InputDecoration(
@@ -100,25 +108,23 @@ class HostaHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              Gap(10),
-              SizedBox(
-                width: 60,
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedBloodGroup,
-                    dropdownColor: Colors.red[300],
-                    style: const TextStyle(color: Colors.white),
-                    iconEnabledColor: Colors.white,
-                    items: bloodGroups
-                        .map((bg) => DropdownMenuItem(
-                              value: bg,
-                              child: Text(bg,
-                                  style: const TextStyle(color: Colors.white)),
-                            ))
-                        .toList(),
-                    onChanged: onBloodGroupChanged,
-                  ),
-                ),
+              const Gap(10),
+              CustomDropdown(
+                items: [
+                  'ALL',
+                  'O+',
+                  'O-',
+                  'A+',
+                  'A-',
+                  'B+',
+                  'B-',
+                  'AB+',
+                  'AB-'
+                ],
+                selectedItem: widget.selectedBloodGroup,
+                onChanged: (value) {
+                  widget.onBloodGroupChanged(value);
+                },
               ),
             ],
           ),
@@ -136,9 +142,6 @@ class BloodDonorScreen extends StatefulWidget {
 }
 
 class _BloodDonorScreenState extends State<BloodDonorScreen> {
-  late Future<List<BloodDonor>> donorsFuture;
-  List<BloodDonor> allDonors = [];
-  List<BloodDonor> filteredDonors = [];
   final TextEditingController _searchController = TextEditingController();
   final List<String> _bloodGroups = [
     "ALL",
@@ -151,64 +154,29 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
     "B+",
     "B-"
   ];
-
-  Widget _buildBloodGroupDropdown() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: DropdownButtonFormField<String>(
-        value: _selectedBloodGroup,
-        items: _bloodGroups
-            .map((bg) => DropdownMenuItem(value: bg, child: Text(bg)))
-            .toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              _selectedBloodGroup = value;
-              _onSearchChanged(); // re-filter donors
-            });
-          }
-        },
-        decoration: const InputDecoration(
-          labelText: 'Filter by Blood Group',
-          border: OutlineInputBorder(),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-      ),
-    );
+  void _callNumber(String phoneNumber) async {
+    final Uri url = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch phone app')),
+      );
+    }
   }
-
-  String _selectedBloodGroup = "ALL";
 
   @override
   void initState() {
     super.initState();
-    donorsFuture = BloodDonorService.fetchDonors();
-    donorsFuture.then((donors) {
-      setState(() {
-        allDonors = donors;
-        filteredDonors = donors;
-      });
-    });
+    final provider = Provider.of<BloodDonorProvider>(context, listen: false);
+    provider.fetchDonors();
 
     _searchController.addListener(_onSearchChanged);
   }
 
   void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase();
-
-    setState(() {
-      filteredDonors = allDonors.where((donor) {
-        final matchesQuery = donor.name.toLowerCase().contains(query) ||
-            donor.bloodGroup.toLowerCase().contains(query) ||
-            donor.address.place.toLowerCase().contains(query);
-
-        final matchesBloodGroup = _selectedBloodGroup == "ALL" ||
-            donor.bloodGroup == _selectedBloodGroup;
-
-        return matchesQuery && matchesBloodGroup;
-      }).toList();
-    });
+    final provider = Provider.of<BloodDonorProvider>(context, listen: false);
+    provider.updateSearchQuery(_searchController.text);
   }
 
   @override
@@ -220,59 +188,69 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          HostaHeader(
-            searchController: _searchController,
-            bloodGroups: _bloodGroups,
-            selectedBloodGroup: _selectedBloodGroup,
-            onBloodGroupChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _selectedBloodGroup = value;
-                  _onSearchChanged();
-                });
-              }
-            },
-          ),
-          Expanded(
-            child: allDonors.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : filteredDonors.isEmpty
-                    ? const Center(child: Text('No donors found.'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: filteredDonors.length,
-                        itemBuilder: (context, index) {
-                          final donor = filteredDonors[index];
-                          return Card(
-                            elevation: 3,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.red[300],
-                                child: Text(donor.bloodGroup,
-                                    style:
-                                        const TextStyle(color: Colors.white)),
-                              ),
-                              title: Text(donor.name),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                      '📍 ${donor.address.place}, ${donor.address.pincode}'),
-                                  Text('📞 ${donor.phone}'),
-                                  Text(
-                                    '🩸 Last donated: ${donor.lastDonationDate.toLocal().toString().split(' ')[0]}',
+      body: Consumer<BloodDonorProvider>(
+        builder: (context, provider, child) {
+          return Column(
+            children: [
+              HostaHeader(
+                searchController: _searchController,
+                bloodGroups: _bloodGroups,
+                selectedBloodGroup: provider.selectedBloodGroup,
+                onBloodGroupChanged: (value) {
+                  if (value != null) {
+                    provider.updateBloodGroup(value);
+                  }
+                },
+              ),
+              Expanded(
+                child: provider.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : provider.filteredDonors.isEmpty
+                        ? const Center(child: Text('No donors found.'))
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: provider.filteredDonors.length,
+                            itemBuilder: (context, index) {
+                              final donor = provider.filteredDonors[index];
+                              return Card(
+                                elevation: 3,
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.red[300],
+                                    child: Text(donor.bloodGroup,
+                                        style: const TextStyle(
+                                            color: Colors.white)),
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
+                                  title: Text(donor.name),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          '📍 ${donor.address.place}, ${donor.address.pincode}'),
+                                      GestureDetector(
+                                        onTap: () => _callNumber(donor.phone),
+                                        child: Text(
+                                          '📞 ${donor.phone}',
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        '🩸 Last donated: ${donor.lastDonationDate.toLocal().toString().split(' ')[0]}',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -282,7 +260,7 @@ class _BloodDonorScreenState extends State<BloodDonorScreen> {
             MaterialPageRoute(builder: (_) => const AddBloodDonor()),
           );
         },
-        child: const Icon(Icons.add,color: Colors.white, size: 30),
+        child: const Icon(Icons.add, color: Colors.white, size: 30),
       ),
     );
   }

@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.water_drop,
         label: 'Blood Bank',
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const BloodDonorScreen(),
+          builder: (_) =>  BloodDonorScreen(),
         )),
       ),
     ];

@@ -1,6 +1,7 @@
 // lib/widgets/hosta_header.dart
 
 import 'package:flutter/material.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 class HostaHeader extends StatelessWidget {
   final TextEditingController controller;
@@ -203,6 +204,199 @@ class CustomHeader extends StatelessWidget {
           ),
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+}
+
+class BloodGroupDropdown extends StatelessWidget {
+  final String? selectedBloodGroup;
+  final List<String> bloodGroups;
+  final Function(String?) onChanged;
+
+  const BloodGroupDropdown({
+    super.key,
+    required this.selectedBloodGroup,
+    required this.bloodGroups,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 80,
+      height: 42,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton2<String>(
+          isExpanded: true,
+          value: selectedBloodGroup,
+          items: bloodGroups
+              .map((bg) => DropdownMenuItem<String>(
+                    value: bg,
+                    child: Center(
+                      child: Text(
+                        bg,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+          buttonStyleData: ButtonStyleData(
+            height: 42,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade500),
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          iconStyleData: const IconStyleData(
+            icon: Icon(Icons.keyboard_arrow_down, size: 20),
+            iconEnabledColor: Colors.grey,
+          ),
+          dropdownStyleData: DropdownStyleData(
+            maxHeight: 200,
+            padding: EdgeInsets.zero,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+          ),
+          menuItemStyleData: const MenuItemStyleData(
+            height: 38,
+            overlayColor: MaterialStatePropertyAll(Colors.grey),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CustomDropdown extends StatefulWidget {
+  final List<String> items;
+  final String selectedItem;
+  final ValueChanged<String> onChanged;
+
+  const CustomDropdown({
+    Key? key,
+    required this.items,
+    required this.selectedItem,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  State<CustomDropdown> createState() => _CustomDropdownState();
+}
+
+class _CustomDropdownState extends State<CustomDropdown> {
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  bool isOpen = false;
+
+  void _toggleDropdown() {
+    if (isOpen) {
+      _removeDropdown();
+    } else {
+      _showDropdown();
+    }
+  }
+
+  void _showDropdown() {
+    final renderBox = context.findRenderObject() as RenderBox;
+    final size = renderBox.size;
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          width: size.width,
+          child: CompositedTransformFollower(
+            link: _layerLink,
+            showWhenUnlinked: false,
+            offset: Offset(0, size.height + 5),
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.red[300],
+              child: ListView(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                children: widget.items.map((item) {
+                  return InkWell(
+                    onTap: () {
+                      widget.onChanged(item);
+                      _removeDropdown();
+                    },
+                    child: Container(
+                      height: 48,
+                      alignment: Alignment.center,
+                      child: Text(
+                        item,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    setState(() {
+      isOpen = true;
+    });
+  }
+
+  void _removeDropdown() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    setState(() {
+      isOpen = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeDropdown();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: _toggleDropdown,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          height: 42,
+          width: 80,
+          decoration: BoxDecoration(
+            color: Colors.red[400],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.selectedItem,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+              const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+            ],
+          ),
+        ),
       ),
     );
   }

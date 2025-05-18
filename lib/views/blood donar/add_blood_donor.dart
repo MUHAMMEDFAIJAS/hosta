@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hosta/controller/donor_controllor.dart';
+import 'package:hosta/model/blood_bank_model.dart';
 import 'package:hosta/service/blood_bank_service.dart';
+import 'package:provider/provider.dart';
 
 class AddBloodDonor extends StatefulWidget {
   const AddBloodDonor({super.key});
@@ -30,6 +33,7 @@ class _AddBloodDonorState extends State<AddBloodDonor> {
     "B+",
     "B-"
   ];
+  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -62,23 +66,23 @@ class _AddBloodDonorState extends State<AddBloodDonor> {
                 _buildTextField(_pincodeController, 'Pincode',
                     keyboardType: TextInputType.number,
                     validator: _pincodeValidator),
-                _buildTextField(
-                  _donationDateController,
-                  'Last Donation Date (YYYY-MM-DD)',
-                  keyboardType: TextInputType.datetime,
-                  validator: _requiredValidator,
-                ),
+                _buildDatePickerField(),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text('Submit',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      )),
-                ),
+                _isSubmitting
+                    ? const CircularProgressIndicator()
+                    : ElevatedButton(
+                        onPressed: _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          minimumSize: const Size(double.infinity, 50),
+                        ),
+                        child: const Text('Submit',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            )),
+                      ),
               ],
             ),
           ),
@@ -86,6 +90,39 @@ class _AddBloodDonorState extends State<AddBloodDonor> {
       ),
     );
   }
+
+  Widget _buildDatePickerField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextFormField(
+        controller: _donationDateController,
+        readOnly: true,
+        decoration: const InputDecoration(
+          labelText: 'Last Donation Date',
+          border: OutlineInputBorder(),
+          suffixIcon: Icon(Icons.calendar_today),
+        ),
+        onTap: () async {
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime.now(),
+          );
+          if (pickedDate != null) {
+            String formattedDate =
+                "${pickedDate.year}-${_pad(pickedDate.month)}-${_pad(pickedDate.day)}";
+            setState(() {
+              _donationDateController.text = formattedDate;
+            });
+          }
+        },
+        validator: _requiredValidator,
+      ),
+    );
+  }
+
+  String _pad(int number) => number.toString().padLeft(2, '0');
 
   Widget _buildTextField(
     TextEditingController controller,
@@ -100,7 +137,7 @@ class _AddBloodDonorState extends State<AddBloodDonor> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
         validator: validator,
       ),
@@ -125,28 +162,62 @@ class _AddBloodDonorState extends State<AddBloodDonor> {
     );
   }
 
-  void _submit() async {
-    if (_formKey.currentState!.validate()) {
-      final success = await BloodDonorService.createDonor(
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_selectedBloodGroup == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final provider = Provider.of<BloodDonorProvider>(context, listen: false);
+
+      // Create new donor object
+      final newDonor = BloodDonor(
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // Temporary ID
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         phone: _phoneController.text.trim(),
         age: int.parse(_ageController.text),
         bloodGroup: _selectedBloodGroup!,
-        place: _placeController.text.trim(),
-        pincode: int.parse(_pincodeController.text),
+        address: Address(
+          place: _placeController.text.trim(),
+          pincode: int.parse(_pincodeController.text),
+        ),
+        lastDonationDate: DateTime.parse(_donationDateController.text.trim()),
+      );
+
+     
+      await provider.addDonor(newDonor);
+
+    
+      await BloodDonorService.createDonor(
+        name: newDonor.name,
+        email: newDonor.email,
+        phone: newDonor.phone,
+        age: newDonor.age,
+        bloodGroup: newDonor.bloodGroup,
+        place: newDonor.address.place,
+        pincode: newDonor.address.pincode,
         lastDonationDate: _donationDateController.text.trim(),
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              success ? 'Donor added successfully' : 'Failed to add donor'),
-          backgroundColor: success ? Colors.green : Colors.red,
+        const SnackBar(
+          content: Text('Donor added successfully'),
+          backgroundColor: Colors.green,
         ),
       );
 
-      if (success) Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add donor: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 

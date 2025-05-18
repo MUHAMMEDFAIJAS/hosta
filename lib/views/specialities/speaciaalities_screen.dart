@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/model/hospital_model.dart';
 import 'package:hosta/service/hospital_service.dart';
-import 'package:hosta/helper.dart'; // assuming CustomHeader is here
+import 'package:hosta/helper.dart';
+
+import '../hospitals/hospital_details_screen.dart'; // assuming CustomHeader is here
 
 class SpecialtiesScreen extends StatefulWidget {
   const SpecialtiesScreen({super.key});
@@ -24,11 +26,27 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
     _searchController.addListener(_filterSpecialties);
   }
 
+  List<Hospital> hospitals = [];
+  List<_SpecialtyWithHospital> specialtyWithHospitals = [];
+  List<_SpecialtyWithHospital> filteredSpecialtyWithHospitals = [];
+
   Future<void> _loadSpecialties() async {
-    final fetchedSpecialties = await HospitalService.fetchSpecialties();
+    final fetchedHospitals =
+        await HospitalService.fetchHospitals(); // fetch hospitals
+    hospitals = fetchedHospitals;
+
+    specialtyWithHospitals = [];
+    for (var hospital in hospitals) {
+      for (var specialty in hospital.specialties) {
+        specialtyWithHospitals.add(_SpecialtyWithHospital(
+          specialty: specialty,
+          hospital: hospital,
+        ));
+      }
+    }
+
     setState(() {
-      specialties = fetchedSpecialties;
-      filteredSpecialties = fetchedSpecialties;
+      filteredSpecialtyWithHospitals = List.from(specialtyWithHospitals);
       isLoading = false;
     });
   }
@@ -37,7 +55,8 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
     final query = _searchController.text.toLowerCase();
 
     setState(() {
-      filteredSpecialties = specialties.where((specialty) {
+      filteredSpecialtyWithHospitals = specialtyWithHospitals.where((pair) {
+        final specialty = pair.specialty;
         final nameMatch = specialty.name.toLowerCase().contains(query);
         final doctorMatch = specialty.doctors.any(
           (doc) => doc.name.toLowerCase().contains(query),
@@ -73,14 +92,14 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
               ? const Expanded(
                   child: Center(child: CircularProgressIndicator()))
               : Expanded(
-                  child: filteredSpecialties.isEmpty
+                  child: filteredSpecialtyWithHospitals.isEmpty
                       ? const Center(child: Text('No results found'))
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: filteredSpecialties.length,
+                          itemCount: filteredSpecialtyWithHospitals.length,
                           itemBuilder: (context, index) {
                             return _buildSpecialtyCard(
-                                index, filteredSpecialties);
+                                index, filteredSpecialtyWithHospitals);
                           },
                         ),
                 ),
@@ -89,8 +108,11 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
     );
   }
 
-  Widget _buildSpecialtyCard(int index, List<Specialty> sourceList) {
-    final specialty = sourceList[index];
+  Widget _buildSpecialtyCard(
+      int index, List<_SpecialtyWithHospital> sourceList) {
+    final pair = sourceList[index];
+    final specialty = pair.specialty;
+    final hospital = pair.hospital;
     final isExpanded = expandedIndex == index;
 
     return Column(
@@ -115,67 +137,110 @@ class _SpecialtiesScreenState extends State<SpecialtiesScreen> {
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   specialty.name,
                   style: const TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.normal,
                   ),
                 ),
-                Icon(
-                  isExpanded ? Icons.expand_less : Icons.expand_more,
-                  color: Colors.green,
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: Colors.green,
+                  ),
                 ),
               ],
             ),
           ),
         ),
         if (isExpanded)
-          Container(
-            width: double.infinity,
-            margin: const EdgeInsets.only(bottom: 20),
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.2),
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Divider(color: Colors.green),
-                const SizedBox(height: 10),
-                Text(
-                  specialty.description.isNotEmpty
-                      ? specialty.description
-                      : 'No description available.',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Doctors:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                ...specialty.doctors.map(
-                  (doctor) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text('• ${doctor.name}'),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => HospitalDetailsScreen(
+                    id: hospital.id,
+                    name: hospital.name,
+                    address: hospital.address,
+                    phone: hospital.phone,
+                    email: hospital.email,
+                    imageUrl: hospital.image?.imageUrl,
                   ),
                 ),
-              ],
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 20),
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Card(
+                color: Colors.green[50],
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(color: Colors.green),
+                      const SizedBox(height: 10),
+                      Text(
+                        hospital.name,
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.green[700],
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                      Text(
+                        specialty.phone.isNotEmpty
+                            ? specialty.phone
+                            : 'No phone available.',
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.normal),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Doctors:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      ...specialty.doctors.map(
+                        (doctor) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text('• ${doctor.name}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.normal)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
       ],
     );
   }
+}
+
+class _SpecialtyWithHospital {
+  final Specialty specialty;
+  final Hospital hospital;
+
+  _SpecialtyWithHospital({required this.specialty, required this.hospital});
 }

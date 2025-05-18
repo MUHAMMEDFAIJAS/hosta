@@ -37,7 +37,6 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
     super.dispose();
   }
 
-
   String getImageForType(String type) {
     final lowerType = type.toLowerCase();
     if (lowerType.contains('allopathy')) {
@@ -51,8 +50,7 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
     } else if (lowerType.contains('unani')) {
       return 'assets/images/Rectangle 1145.png';
     }
-    // Default image if none match
-    return 'assets/images/Rectangle 1145.png';
+    return 'assets/images/Rectangle 1145.png'; // Default
   }
 
   @override
@@ -77,7 +75,6 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  // Get unique types and filter by search keyword
                   final types = provider.hospitals
                       .map((hospital) => hospital.type)
                       .toSet()
@@ -85,13 +82,18 @@ class _HospitalTypesScreenState extends State<HospitalTypesScreen> {
                           (type) => type.toLowerCase().contains(searchKeyword))
                       .toList();
 
+                  if (types.isEmpty) {
+                    return const Center(
+                        child: Text('No hospital types found.'));
+                  }
+
                   return GridView.builder(
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 200, // Max width for each grid item
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 0.9, // Adjust height-to-width ratio
+                      maxCrossAxisExtent: 200,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.9, 
                     ),
                     itemCount: types.length,
                     itemBuilder: (context, index) {
@@ -138,57 +140,45 @@ class HospitalTypeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 6,
+        elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        margin: const EdgeInsets.all(12), // margin outside card
-        child: Container(
-          width: 180,
-          height: 220,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.15),
-                spreadRadius: 2,
-                blurRadius: 7,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 4,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
                 ),
                 child: Image.asset(
                   imagePath,
-                  height: 150,
-                  width: double.infinity,
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  type,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 20,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black87,
+            ),
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text(
+                    type,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

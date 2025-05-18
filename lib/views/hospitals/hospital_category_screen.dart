@@ -4,6 +4,7 @@ import 'package:hosta/helper.dart';
 import 'package:hosta/service/location_service.dart';
 import 'package:hosta/views/hospitals/hospital_details_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HospitalcategoryScreen extends StatefulWidget {
   final String selectedType;
@@ -34,6 +35,17 @@ class _HospitalcategoryScreenState extends State<HospitalcategoryScreen> {
         provider.fetchHospitals();
       }
     });
+  }
+
+  void _callNumber(String phoneNumber) async {
+    final Uri url = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not launch phone app')),
+      );
+    }
   }
 
   @override
@@ -207,12 +219,16 @@ class _HospitalcategoryScreenState extends State<HospitalcategoryScreen> {
                                               const Icon(Icons.phone,
                                                   color: Colors.green),
                                               const SizedBox(width: 4),
-                                              Text(
-                                                hospital.phone,
-                                                style: const TextStyle(
-                                                  fontFamily: 'Poppins',
-                                                  color: Colors.green,
-                                                  fontSize: 16,
+                                              GestureDetector(
+                                                onTap: () =>
+                                                    _callNumber(hospital.phone),
+                                                child: Text(
+                                                  hospital.phone,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    color: Colors.green,
+                                                    fontSize: 16,
+                                                  ),
                                                 ),
                                               ),
                                             ],

@@ -209,16 +209,19 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(IconData icon, String address) {
+    // Extract only the location parts (remove plus codes and coordinates)
+    String displayAddress =
+        address.replaceAll(RegExp(r'^\d+[A-Za-z]+\+\w+,\s*'), '');
+
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.green),
+        Icon(icon, color: Colors.green[600]),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
-            text,
-            style: const TextStyle(
+            displayAddress.isNotEmpty ? displayAddress : 'Fetching address...',
+            style: TextStyle(
               fontSize: 15,
               color: Colors.black87,
             ),
