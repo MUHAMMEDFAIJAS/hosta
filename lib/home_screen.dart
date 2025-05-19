@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icons.water_drop,
         label: 'Blood Bank',
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) =>  BloodDonorScreen(),
+          builder: (_) => BloodDonorScreen(),
         )),
       ),
     ];
@@ -218,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 15,
                       mainAxisSpacing: 15,
+                      padding: const EdgeInsets.only(bottom: 40),
                       children: filteredServices
                           .map((item) => _ServiceItem(
                                 icon: item.icon,

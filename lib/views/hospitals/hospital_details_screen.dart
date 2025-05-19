@@ -210,9 +210,8 @@ class _HospitalDetailsScreenState extends State<HospitalDetailsScreen>
   }
 
   Widget _buildInfoRow(IconData icon, String address) {
-    // Extract only the location parts (remove plus codes and coordinates)
     String displayAddress =
-        address.replaceAll(RegExp(r'^\d+[A-Za-z]+\+\w+,\s*'), '');
+        address.replaceAll(RegExp(r'^\s*\d+\S*\+[^,]+,\s*'), '');
 
     return Row(
       children: [

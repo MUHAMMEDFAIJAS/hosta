@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hosta/helper.dart';
 import 'package:hosta/model/hospital_model.dart';
 import 'package:hosta/service/doctor_service.dart';
+import 'package:hosta/service/hospital_service.dart';
+
+import '../hospitals/hospital_details_screen.dart';
 
 class DoctorsScreen extends StatefulWidget {
   const DoctorsScreen({super.key});
@@ -16,6 +19,7 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
   List<Doctor> _filteredDoctors = [];
   bool _isLoading = true;
   String _error = '';
+  Map<String, Hospital> _doctorHospitalMap = {};
 
   @override
   void initState() {
@@ -26,10 +30,23 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
 
   Future<void> _loadDoctors() async {
     try {
-      final doctors = await DoctorService.fetchDoctors();
+      final hospitals = await HospitalService.fetchHospitals();
+      final doctors = <Doctor>[];
+      final doctorHospitalMap = <String, Hospital>{};
+
+      for (var hospital in hospitals) {
+        for (var specialty in hospital.specialties) {
+          for (var doctor in specialty.doctors) {
+            doctors.add(doctor);
+            doctorHospitalMap[doctor.name] = hospital;
+          }
+        }
+      }
+
       setState(() {
         _allDoctors = doctors;
         _filteredDoctors = doctors;
+        _doctorHospitalMap = doctorHospitalMap;
         _isLoading = false;
       });
     } catch (e) {
@@ -88,18 +105,43 @@ class _DoctorsScreenState extends State<DoctorsScreen> {
                             itemCount: _filteredDoctors.length,
                             itemBuilder: (context, index) {
                               final doc = _filteredDoctors[index];
+                              final hosp = _doctorHospitalMap[doc.name];
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
-                                child: DoctorTile(
-                                  name: doc.name,
-                                  specialization: doc.qualification,
-                                  availability: doc.consulting.map((c) {
-                                    return {
-                                      'day': c.day,
-                                      'location': '',
-                                      'time': '${c.startTime} to ${c.endTime}',
-                                    };
-                                  }).toList(),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    final hospital =
+                                        _doctorHospitalMap[doc.name];
+                                  
+
+                                    if (hospital != null) {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => HospitalDetailsScreen(
+                                            id: hospital.id,
+                                            name: hospital.name,
+                                            address: hospital.address,
+                                            phone: hospital.phone,
+                                            email: hospital.email,
+                                            imageUrl: hospital.image?.imageUrl,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: DoctorTile(
+                                    name: doc.name,
+                                    specialization: doc.qualification,
+                                    hospitalname: hosp?.name ?? '',
+                                    availability: doc.consulting.map((c) {
+                                      return {
+                                        'day': c.day,
+                                        'name': hosp?.name ?? '',
+                                        'time':
+                                            '${c.startTime} to ${c.endTime}',
+                                      };
+                                    }).toList(),
+                                  ),
                                 ),
                               );
                             },
@@ -115,12 +157,14 @@ class DoctorTile extends StatelessWidget {
   final String name;
   final String specialization;
   final List<Map<String, String>> availability;
+  final String hospitalname;
 
   const DoctorTile({
     super.key,
     required this.name,
     required this.specialization,
     required this.availability,
+    required this.hospitalname,
   });
 
   @override
@@ -171,9 +215,28 @@ class DoctorTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 5),
-              Text(
-                item['time'] ?? '',
-                style: const TextStyle(fontFamily: 'Poppins'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    item['time'] ?? '',
+                    style: const TextStyle(fontFamily: 'Poppins'),
+                  ),
+                  Flexible(
+                    child: Text(
+                      hospitalname,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign:
+                          TextAlign.end, // optional: align to right if needed
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
