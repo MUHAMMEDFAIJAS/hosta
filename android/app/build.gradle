@@ -27,9 +27,18 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    signingConfigs{
+       debug {
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+        storeFile file('key.jks')
+        storePassword 'android'
+        
+       }
+    }
 
     buildTypes {
-        release {
+        debug {
             signingConfig = signingConfigs.debug
         }
     }
