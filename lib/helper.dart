@@ -3,10 +3,17 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
+// lib/widgets/hosta_header.dart
+
 class HostaHeader extends StatelessWidget {
   final TextEditingController controller;
+  final VoidCallback? onMenuTap;
 
-  const HostaHeader({super.key, required this.controller});
+  const HostaHeader({
+    super.key,
+    required this.controller,
+    this.onMenuTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +41,16 @@ class HostaHeader extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[600],
-                  borderRadius: BorderRadius.circular(10),
+              GestureDetector(
+                onTap: onMenuTap,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green[600],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.menu, color: Colors.white, size: 20),
                 ),
-                child: const Icon(Icons.menu, color: Colors.white, size: 20),
               ),
             ],
           ),
@@ -87,6 +97,7 @@ class HostaHeader extends StatelessWidget {
     );
   }
 }
+
 
 class CustomHeader extends StatelessWidget {
   final String title;

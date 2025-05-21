@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hosta/controller/donor_controllor.dart';
 import 'package:hosta/controller/hospital_controller.dart';
 import 'package:hosta/home_screen.dart';
+import 'package:hosta/views/signup/login_screen.dart';
+import 'package:hosta/views/splash/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
           fontFamily: 'Poppins',
         ),
         debugShowCheckedModeBanner: false,
-        home: HomeScreen(),
+        home: SplashScreen(),
       ),
     );
   }

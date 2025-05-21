@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hosta/service/auth_service.dart';
 import 'package:hosta/home_screen.dart';
+import 'package:hosta/views/signup/signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key});
@@ -96,17 +97,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
-                    final loginResponse = await AuthService.loginUser(
-                      emailController.text,
-                      passwordController.text,
+                    final appUser = await AuthService.loginUser(
+                      emailController.text.trim(),
+                      passwordController.text.trim(),
                     );
-                    if (loginResponse != null) {
-                      print('Login Success: ${loginResponse.message}');
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => HomeScreen()));
+
+                    if (appUser != null) {
+                      print('Login Success');
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HomeScreen(user: appUser),
+                        ),
+                      );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Login Failed')),
+                        const SnackBar(content: Text('Login Failed')),
                       );
                     }
                   },
@@ -131,9 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _socialLoginButton('assets/images/devicon_google.png'),
-                  const SizedBox(width: 20),
-                  _socialLoginButton('assets/images/Vector.png'),
+                  _socialLoginButton('assets/images/th.jpeg', () async {
+                    await AuthService().signIN(context);
+                  }, 'Sign in with Google'),
                 ],
               ),
               const SizedBox(height: 30),
@@ -142,7 +148,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text("Don't have an account? "),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => SignupScreen(),
+                        ),
+                      );
+                    },
                     child: const Text(
                       "Sign up",
                       style: TextStyle(color: Colors.green),
@@ -157,20 +169,38 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _socialLoginButton(String assetPath) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 2),
-        ],
-      ),
-      child: Image.asset(
-        assetPath,
-        height: 30,
-        width: 30,
+  Widget _socialLoginButton(String assetPath, VoidCallback onTap, String text) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 250,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(color: Colors.black12, blurRadius: 5, spreadRadius: 2),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              assetPath,
+              height: 24,
+              width: 40,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

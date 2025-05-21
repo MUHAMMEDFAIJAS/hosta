@@ -1,36 +1,48 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hosta/model/user_model.dart';
+import 'package:hosta/service/auth_service.dart';
+import 'package:hosta/service/google_signinapi.dart';
+import 'package:hosta/views/privacy%20policy/privacypolicy_screen.dart';
 
 import 'package:hosta/views/ambulance/ambulance_screen.dart';
 import 'package:hosta/views/blood%20donar/blood_donar.dart';
 import 'package:hosta/views/doctors/doctors_screen.dart';
 
 import 'package:hosta/views/hospitals/hospital_types.dart';
+import 'package:hosta/views/signup/login_screen.dart';
 import 'package:hosta/views/specialities/speaciaalities_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hosta/helper.dart' as helper;
 import 'package:location/location.dart';
 
 class ServiceItem {
-  final IconData icon;
+  final IconData? icon;
+  final ImageProvider? image;
   final String label;
   final VoidCallback onTap;
 
   ServiceItem({
-    required this.icon,
+    this.icon,
+    this.image,
     required this.label,
     required this.onTap,
-  });
+  }) : assert(icon != null || image != null,
+            'Either icon or image must be provided');
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final AppUser user; // 👈 use AppUser now
+  const HomeScreen({super.key, required this.user});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   late BannerAd _bannerAd;
   bool _isAdLoaded = false;
   TextEditingController _searchController = TextEditingController();
@@ -64,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     allServices = [
       ServiceItem(
-        icon: Icons.local_hospital,
+        image: AssetImage('assets/images/solar_hospital-linear.png'),
         label: 'Hospitals',
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => HospitalTypesScreen(),
@@ -85,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
         )),
       ),
       ServiceItem(
-        icon: Icons.medical_information,
+        image: AssetImage('assets/images/amblnce.png'),
         label: 'Ambulance',
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
           builder: (_) => const AmbulanceScreen(),
@@ -112,6 +124,28 @@ class _HomeScreenState extends State<HomeScreen> {
           .where((item) => item.label.toLowerCase().contains(query))
           .toList();
     });
+  }
+
+  void _logout() async {
+    try {
+      // Optional: Check if Google user is signed in
+      if (await GoogleSignIn().isSignedIn()) {
+        await GoogleSigninApi.logout();
+      }
+
+      // TODO: If you're storing email/password login info via SharedPreferences, clear them here
+
+      // Navigate to login screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => LoginScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      print("Logout failed: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Logout failed')),
+      );
+    }
   }
 
   Future<void> _getLocationOnStartup() async {
@@ -168,6 +202,63 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawerEnableOpenDragGesture: false,
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            SizedBox(
+              height: 250,
+              child: DrawerHeader(
+                margin: EdgeInsets.zero,
+                decoration: BoxDecoration(
+                  color: Colors.green[800],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage: widget.user.photoUrl != null
+                          ? NetworkImage(widget.user.photoUrl!)
+                          : const AssetImage('assets/images/profile.png')
+                              as ImageProvider,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      widget.user.displayName ?? 'User Name',
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                    Text(
+                      widget.user.email,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.privacy_tip),
+              title: const Text('Privacy Policy'),
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const PrivacyPolicyScreen(),
+                ));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () {
+                _logout();
+                AuthService().signOut(context);
+              },
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -175,6 +266,10 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 helper.HostaHeader(
                   controller: _searchController,
+                  onMenuTap: () {
+                    _scaffoldKey.currentState
+                        ?.openEndDrawer(); // ✅ Opens right drawer
+                  },
                 ),
                 const SizedBox(height: 20),
                 if (carouselItems.isNotEmpty)
@@ -222,6 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: filteredServices
                           .map((item) => _ServiceItem(
                                 icon: item.icon,
+                                image: item.image,
                                 label: item.label,
                                 onTap: item.onTap,
                               ))
@@ -240,11 +336,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
 // Service Item Widget (unchanged)
 class _ServiceItem extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final ImageProvider? image;
   final String label;
   final VoidCallback? onTap;
 
-  const _ServiceItem({required this.icon, required this.label, this.onTap});
+  const _ServiceItem({
+    this.icon,
+    this.image,
+    required this.label,
+    this.onTap,
+  }) : assert(icon != null || image != null,
+            'Either icon or image must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -265,16 +368,23 @@ class _ServiceItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 60, color: Colors.green),
+            if (icon != null)
+              Icon(icon, size: 60, color: Colors.green)
+            else if (image != null)
+              Image(
+                image: image!,
+                height: 60,
+                width: 60,
+                fit: BoxFit.contain,
+              ),
             const SizedBox(height: 10),
             Text(
               label,
               style: const TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight
-                    .normal, // Will use Poppins because it's set globally
+                fontWeight: FontWeight.normal,
               ),
-            )
+            ),
           ],
         ),
       ),
