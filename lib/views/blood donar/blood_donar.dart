@@ -3,7 +3,7 @@ import 'package:hosta/controller/donor_controllor.dart';
 import 'package:hosta/helper.dart';
 import 'package:provider/provider.dart';
 import 'package:gap/gap.dart';
-import 'package:hosta/model/blood_bank_model.dart';
+
 import 'package:hosta/views/blood%20donar/add_blood_donor.dart';
 import 'package:url_launcher/url_launcher.dart';
 

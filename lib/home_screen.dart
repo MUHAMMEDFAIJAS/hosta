@@ -33,7 +33,7 @@ class ServiceItem {
 }
 
 class HomeScreen extends StatefulWidget {
-  final AppUser user; // 👈 use AppUser now
+  final AppUser user; 
   const HomeScreen({super.key, required this.user});
 
   @override
